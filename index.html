@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>dRi · Phone Survey Tracker | Development Research Initiative</title>
+<title>dRi · Phone Survey Tracker</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -51,21 +51,46 @@ body{font-family:'Montserrat',sans-serif;background:var(--bg-main);color:var(--t
 
 .workspace{display:flex;flex:1;overflow:hidden;}
 
-.sidebar{width:260px;background:var(--bg-sidebar);flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.05);overflow-y:auto;}
-.sidebar-section-title{font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.4);text-transform:uppercase;padding:20px 16px 8px;}
-.project-item{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;color:rgba(255,255,255,.7);font-size:13.5px;font-weight:600;border-left:4px solid transparent;transition:all .15s;user-select:none;}
-.project-item:hover{background:rgba(255,255,255,.04);color:#ffffff;}
+/* ── SIDEBAR (collapsible) ── */
+.sidebar{width:200px;background:var(--bg-sidebar);flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.05);overflow:hidden;transition:width .22s cubic-bezier(.4,0,.2,1);}
+.sidebar.collapsed{width:44px;}
+
+/* toggle button */
+.sb-toggle{display:flex;align-items:center;justify-content:center;padding:10px 0;cursor:pointer;color:rgba(255,255,255,.45);background:none;border:none;width:100%;transition:color .15s;}
+.sb-toggle:hover{color:#fff;}
+.sb-toggle .material-icons-round{font-size:20px;transition:transform .22s;}
+.sidebar.collapsed .sb-toggle .material-icons-round{transform:rotate(180deg);}
+
+.sidebar-section-title{font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.4);text-transform:uppercase;padding:14px 16px 6px;white-space:nowrap;overflow:hidden;transition:opacity .15s;}
+.sidebar.collapsed .sidebar-section-title{opacity:0;pointer-events:none;}
+
+.project-item{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;color:rgba(255,255,255,.7);font-size:13px;font-weight:600;border-left:3px solid transparent;transition:all .15s;user-select:none;white-space:nowrap;overflow:hidden;}
+.project-item:hover{background:rgba(255,255,255,.06);color:#ffffff;}
 .project-item.active{background:rgba(255,255,255,.1);color:#ffffff;border-left-color:var(--dri-accent-blue);}
 .project-status-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);flex-shrink:0;}
 .project-item.active .project-status-dot{background:var(--dri-accent-blue);}
-.project-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.project-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:opacity .15s;}
+.sidebar.collapsed .project-name{opacity:0;width:0;flex:0;}
 .project-actions{display:none;gap:4px;}
 .project-item:hover .project-actions{display:flex;}
+.sidebar.collapsed .project-item:hover .project-actions{display:none;}
 .action-icon-btn{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:4px;border-radius:4px;display:flex;align-items:center;justify-content:center;}
 .action-icon-btn:hover{color:#ffffff;background:rgba(255,255,255,0.1);}
 .action-icon-btn .material-icons-round{font-size:16px;}
-.btn-add-project{margin:12px 16px;padding:10px;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.2);color:rgba(255,255,255,.8);border-radius:var(--radius-md);cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;}
+
+/* tooltip on collapsed items */
+.sidebar.collapsed .project-item{position:relative;}
+.sidebar.collapsed .project-item:hover::after{content:attr(data-name);position:absolute;left:52px;top:50%;transform:translateY(-50%);background:#111;color:#fff;padding:5px 10px;border-radius:5px;font-size:12px;font-weight:600;white-space:nowrap;z-index:999;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3);}
+
+.btn-add-project{margin:8px 8px;padding:9px;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.2);color:rgba(255,255,255,.8);border-radius:var(--radius-md);cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;white-space:nowrap;overflow:hidden;}
 .btn-add-project:hover{background:rgba(255,255,255,.15);color:#ffffff;border-color:var(--dri-accent-blue);}
+.btn-add-project .btn-add-label{transition:opacity .15s;white-space:nowrap;}
+.sidebar.collapsed .btn-add-project .btn-add-label{display:none;}
+.sidebar.collapsed .btn-add-project{margin:8px 6px;padding:9px 0;justify-content:center;}
+
+/* about footer */
+.sb-footer-expanded{transition:opacity .15s;}
+.sidebar.collapsed .sb-footer-expanded{opacity:0;pointer-events:none;height:0;overflow:hidden;padding:0;margin:0;border:none;}
 
 .main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .content-header{background:var(--card-bg);border-bottom:1px solid var(--border-color);padding:0 24px;flex-shrink:0;box-shadow:var(--shadow-sm);}
@@ -92,9 +117,9 @@ body{font-family:'Montserrat',sans-serif;background:var(--bg-main);color:var(--t
 .table-container{background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;flex:1;min-height:0;display:flex;flex-direction:column;}
 .table-scrollable-area{overflow:auto;flex:1;}
 table{width:100%;border-collapse:collapse;font-size:13px;text-align:left;}
-th{position:sticky;top:0;background:#F9FAFB;padding:14px 16px;font-weight:700;font-size:12px;color:var(--text-muted);border-bottom:1px solid var(--border-color);z-index:10;white-space:nowrap;user-select:none;cursor:pointer;}
+th{position:sticky;top:0;background:#F9FAFB;padding:10px 12px;font-weight:700;font-size:11.5px;color:var(--text-muted);border-bottom:1px solid var(--border-color);z-index:10;white-space:nowrap;user-select:none;cursor:pointer;}
 th:hover{color:var(--text-main);background:#EDF2F7;}
-td{padding:14px 16px;border-bottom:1px solid var(--border-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+td{padding:10px 12px;border-bottom:1px solid var(--border-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 tr.interactive-table-row{cursor:pointer;transition:all 0.1s;}
 tr.interactive-table-row:hover{background-color:#F9FAFB;}
@@ -151,32 +176,43 @@ tr.interactive-table-row:hover{background-color:#F9FAFB;}
   >
 </div>
   <div class="nav-divider"></div>
-  <div class="nav-subtitle" style="color:rgba(255,255,255,0.9);">CATI Operations Center</div>
+  <div class="nav-subtitle" style="color:rgba(255,255,255,0.9);">Phone Survey Tracker</div>
   <div class="nav-spacer"></div>
   <div id="syncStatusFeedback" class="sync-badge">
     <span class="material-icons-round" style="font-size:16px;">cloud_off</span>
     No data stream attached
   </div>
+  <div id="lastSyncTimer" style="display:none; align-items:center; gap:5px; font-size:11.5px; font-weight:600; color:rgba(255,255,255,0.9); background:rgba(255,255,255,0.12); padding:5px 12px; border-radius:16px; border:1px solid rgba(255,255,255,0.2);">
+    <span class="material-icons-round" style="font-size:14px; color:#6ACFF6;">history</span>
+    <span id="lastSyncTimerText"></span>
+  </div>
   <button class="btn-sync" onclick="synchronizeProjectDataStream()">
-    <span class="material-icons-round" style="font-size:18px;">sync</span> Synchronize Pipeline
+    <span class="material-icons-round" style="font-size:18px;">sync</span> Synchronize
   </button>
 </div>
 
 <div class="workspace">
-  <div class="sidebar">
+  <div class="sidebar" id="appSidebar">
+    <button class="sb-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+      <span class="material-icons-round">chevron_left</span>
+    </button>
     <div class="sidebar-section-title">Active Research Projects</div>
     <div id="projectDOMList"></div>
     <div class="btn-add-project" onclick="triggerAddProjectModal()">
-      <span class="material-icons-round" style="font-size:18px;">add_circle_outline</span> Add Project
+      <span class="material-icons-round" style="font-size:18px;flex-shrink:0;">add_circle_outline</span>
+      <span class="btn-add-label">Add Project</span>
     </div>
-    
-    <div class="sidebar-section-title" style="margin-top:auto; border-top:1px solid rgba(255,255,255,0.05); padding-top:20px;">Reference Data</div>
-    <div style="padding:0 16px 20px 16px;">
-      <label for="choicesFileInput" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:var(--dri-red); color:white; text-align:center; border-radius:var(--radius-md); cursor:pointer; font-size:12px; font-weight:700; transition:background 0.15s;">
-        <span class="material-icons-round" style="font-size:18px;">upload_file</span>
-        Attach Choices Reference
-      </label>
-      <input type="file" id="choicesFileInput" accept=".csv" style="display:none;">
+
+    <div class="sb-footer-expanded" style="margin-top:auto; border-top:1px solid rgba(255,255,255,0.07); padding:14px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span class="material-icons-round" style="font-size:14px;color:rgba(255,255,255,0.3);">info</span>
+        <span style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.3);">About</span>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);line-height:1.7;">
+        Created by<br>
+        <span style="color:rgba(255,255,255,0.65);font-weight:700;">Data Analytics Team</span><br>
+        Development Research Initiative (dRi)
+      </div>
     </div>
   </div>
 
@@ -231,17 +267,17 @@ tr.interactive-table-row:hover{background-color:#F9FAFB;}
           <table id="trackingPrimaryGrid">
             <thead>
               <tr>
-                <th onclick="toggleGridSort('id')">Respondent ID ⇅</th>
-                <th onclick="toggleGridSort('name')">Respondent Name ⇅</th>
-                <th onclick="toggleGridSort('location')">Location / Category ⇅</th>
-                <th onclick="toggleGridSort('historyCount')">Call History Log ⇅</th>
-                <th onclick="toggleGridSort('status')">Last Dial Status ⇅</th>
-                <th onclick="toggleGridSort('consent')">Consent Label ⇅</th>
-                <th onclick="toggleGridSort('reason')">Rejection Reason ⇅</th>
-                <th onclick="toggleGridSort('enumerator')">Last Enumerator ⇅</th>
-                <th onclick="toggleGridSort('timestamp')">Last Update Date ⇅</th>
+                <th onclick="toggleGridSort('id')">ID ⇅</th>
+                <th onclick="toggleGridSort('name')">Name ⇅</th>
+                <th onclick="toggleGridSort('location')">Location ⇅</th>
+                <th onclick="toggleGridSort('historyCount')">Calls ⇅</th>
+                <th onclick="toggleGridSort('status')">Status ⇅</th>
+                <th onclick="toggleGridSort('consent')">Consent ⇅</th>
+                <th onclick="toggleGridSort('reason')">Reason ⇅</th>
+                <th onclick="toggleGridSort('enumerator')">Enumerator ⇅</th>
+                <th onclick="toggleGridSort('timestamp')">Date ⇅</th>
                 <th>Time</th>
-                <th style="text-align: center;">Actions View</th>
+                <th style="text-align: center;">Actions</th>
               </tr>
             </thead>
             <tbody id="trackingTableBodyRowContainer"></tbody>
@@ -361,16 +397,16 @@ tr.interactive-table-row:hover{background-color:#F9FAFB;}
 
 <script>
 const STATUS_VALUE_MAPPING = {
-  '1': 'Available (যোগাযোগ হয়েছে)',
-  '2': 'Not reachable / Phone off (যোগাযোগ করা যায়নি)',
-  '3': 'Did not pick up / No answer (কল ধরেনি)',
-  '4': 'Wrong number (ভুল নম্বর)'
+  '1': 'Available',
+  '2': 'Not Reachable / Phone Off',
+  '3': 'Did Not Pick Up / No Answer',
+  '4': 'Wrong Number'
 };
 
 const CONSENT_VALUE_MAPPING = {
-  '1': 'Agreed / Yes (হ্যাঁ)',
-  '0': 'Refused / No (না)',
-  '98': 'Don\'t know (জানিনা)'
+  '1': 'Agreed / Yes',
+  '0': 'Refused / No',
+  '98': "Don't Know"
 };
 
 const INTEGRATED_COLUMN_HEADERS = {
@@ -430,40 +466,7 @@ function initializePersistentStorage() {
   }
 }
 
-function processChoices(csvText) {
-    const rows = parseRobustCSVMatrixStream(csvText);
-    if(rows.length < 2) return;
-    labelLookup = {};
-    const headers = rows[0].map(h => String(h).toLowerCase().trim());
-    const listIdx = headers.findIndex(h => h.includes('list_name'));
-    const nameIdx = headers.findIndex(h => h === 'name' || h === 'value');
-    const labelIdx = headers.findIndex(h => h.includes('label:english') || h.includes('label'));
 
-    if(listIdx === -1 || nameIdx === -1 || labelIdx === -1) {
-        alert('Choices CSV format unrecognized. Please ensure it has list_name, name, and label columns.');
-        return;
-    }
-
-    for(let i=1; i<rows.length; i++) {
-        const listName = rows[i][listIdx];
-        const value = rows[i][nameIdx];
-        const label = rows[i][labelIdx];
-        if(listName && value) {
-            if(!labelLookup[listName]) labelLookup[listName] = {};
-            labelLookup[listName][value] = label;
-        }
-    }
-    alert('SurveyCTO Labels mapped successfully!');
-    if (coreAggregatedDataset.length > 0) renderPrimaryGridUIBody();
-}
-
-document.getElementById('choicesFileInput').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => processChoices(event.target.result);
-    reader.readAsText(file);
-});
 
 function getLabel(listNameFallback, val) {
     if (!val || val === 'undefined') return val || '—';
@@ -483,6 +486,7 @@ function renderProjectSidebarView() {
   trackingProjectProfiles.forEach(p => {
     const itemEl = document.createElement('div');
     itemEl.className = `project-item ${p.id === currentlyActiveProjectId ? 'active' : ''}`;
+    itemEl.setAttribute('data-name', p.name);
     itemEl.onclick = () => activateProjectProfileContext(p.id);
     
     itemEl.innerHTML = `
@@ -651,6 +655,7 @@ async function synchronizeProjectDataStream() {
       fileReader.onload = fileEv => {
         workingTab.data = parseRobustCSVMatrixStream(fileEv.target.result);
         localStorage.setItem('dri_cati_system_v9', JSON.stringify(trackingProjectProfiles));
+        recordLastSyncTime();
         processActiveDataStream();
       };
       fileReader.readAsText(targetFile);
@@ -669,6 +674,7 @@ async function synchronizeProjectDataStream() {
     workingTab.data = parseRobustCSVMatrixStream(directText);
     localStorage.setItem('dri_cati_system_v9', JSON.stringify(trackingProjectProfiles));
     statusIndicatorDOM.innerHTML = `<span class="material-icons-round" style="color:#10B981;">cloud_done</span> Stream Sync Online`;
+    recordLastSyncTime();
     processActiveDataStream();
   } catch(error) {
     console.error(error);
@@ -676,6 +682,38 @@ async function synchronizeProjectDataStream() {
     alert("Live spreadsheet URL synchronization failed. Access blocked or network structure changed. Activating local file ingestion override.");
     workingTab.url = ""; 
   }
+}
+
+let lastSyncTimestamp = null;
+let syncTickerInterval = null;
+
+function recordLastSyncTime() {
+  lastSyncTimestamp = new Date();
+  const timerEl = document.getElementById('lastSyncTimer');
+  timerEl.style.display = 'flex';
+  updateSyncTimerText();
+  if (syncTickerInterval) clearInterval(syncTickerInterval);
+  syncTickerInterval = setInterval(updateSyncTimerText, 30000);
+}
+
+function updateSyncTimerText() {
+  if (!lastSyncTimestamp) return;
+  const now = new Date();
+  const diffMs = now - lastSyncTimestamp;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffSecs = Math.floor((diffMs % 60000) / 1000);
+  let label;
+  if (diffMins === 0) {
+    label = diffSecs < 10 ? 'Just synced' : `${diffSecs}s ago`;
+  } else if (diffMins < 60) {
+    label = `Last sync: ${diffMins}m ago`;
+  } else {
+    const h = Math.floor(diffMins / 60);
+    const m = diffMins % 60;
+    label = `Last sync: ${h}h ${m}m ago`;
+  }
+  const timeStr = lastSyncTimestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('lastSyncTimerText').textContent = `${label} (${timeStr})`;
 }
 
 function parseRobustCSVMatrixStream(streamText) {
@@ -968,7 +1006,7 @@ function renderPrimaryGridUIBody() {
       <td><strong>${escapeHtmlString(record.name || '—')}</strong></td>
       <td>${escapeHtmlString(record.location || '—')}</td>
       <td style="text-align:left; padding-left:24px;">
-        <span class="history-counter-badge" title="Total chronological forms matched">${record.historyCount} Submissions</span>
+        <span class="history-counter-badge" title="Total submissions matched">${record.historyCount}</span>
       </td>
       <td>
         <span class="status-pill status-${record.visualCategoryKey}">
@@ -977,13 +1015,13 @@ function renderPrimaryGridUIBody() {
         </span>
       </td>
       <td><strong>${escapeHtmlString(record.consent || '—')}</strong></td>
-      <td style="color:var(--dri-red); font-weight:600; font-size:11.5px;">${reasonText}</td>
+      <td style="color:var(--dri-red); font-weight:600; font-size:11.5px; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${reasonText}">${reasonText}</td>
       <td>${escapeHtmlString(getLabel('enum', record.enumerator))}</td>
       <td style="font-family:'JetBrains Mono', monospace; font-size:12px;">${escapeHtmlString(extractedDt.date)}</td>
       <td style="font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--text-muted);">${escapeHtmlString(extractedDt.time)}</td>
       <td style="text-align: center;">
         <button class="btn-view-details" onclick="openRespondentDiagnosticHistoryLogModal('${record.id}')">
-          <span class="material-icons-round">analytics</span> View Details (${record.historyCount})
+          <span class="material-icons-round">analytics</span> View (${record.historyCount})
         </button>
       </td>
     `;
@@ -1026,7 +1064,7 @@ function openRespondentDiagnosticHistoryLogModal(respondentId) {
   
   // Set Schedule
   const scheduleDisplay = (matchRecord.day_to_call !== '—' || matchRecord.time_to_call !== '—') 
-      ? `📅 <strong>${escapeHtmlString(matchRecord.day_to_call)}</strong> | ⏰ <strong>${escapeHtmlString(matchRecord.time_to_call)}</strong><br><span style="font-size:11px; color:#1E40AF;">Call To: ${escapeHtmlString(matchRecord.phn_numbe_to_call)} | Note: ${escapeHtmlString(matchRecord.call_avail)}</span>`
+      ? `<span class="material-icons-round" style="font-size:14px;vertical-align:middle;color:#1E40AF;">calendar_today</span> <strong>${escapeHtmlString(matchRecord.day_to_call)}</strong> &nbsp;|&nbsp; <span class="material-icons-round" style="font-size:14px;vertical-align:middle;color:#1E40AF;">schedule</span> <strong>${escapeHtmlString(matchRecord.time_to_call)}</strong><br><span style="font-size:11px; color:#1E40AF;"><span class="material-icons-round" style="font-size:12px;vertical-align:middle;">call</span> Call To: ${escapeHtmlString(matchRecord.phn_numbe_to_call)} &nbsp;|&nbsp; <span class="material-icons-round" style="font-size:12px;vertical-align:middle;">sticky_note_2</span> Note: ${escapeHtmlString(matchRecord.call_avail)}</span>`
       : 'No scheduling information available for this respondent.';
   document.getElementById('modalProfileSchedule').innerHTML = scheduleDisplay;
 
@@ -1085,6 +1123,22 @@ function openRespondentDiagnosticHistoryLogModal(respondentId) {
 function launchModalWindow(id) { document.getElementById(id).classList.add('modal-is-visible'); }
 function dismissModalWindow(id) { document.getElementById(id).classList.remove('modal-is-visible'); }
 function escapeHtmlString(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toggleSidebar() {
+  const sb = document.getElementById('appSidebar');
+  const isCollapsed = sb.classList.toggle('collapsed');
+  localStorage.setItem('dri_sidebar_collapsed', isCollapsed ? '1' : '0');
+}
+
+// Restore sidebar state on load
+window.addEventListener('DOMContentLoaded', () => {
+  const sidebarState = localStorage.getItem('dri_sidebar_collapsed');
+  // Default to collapsed if never set
+  if (sidebarState === null || sidebarState === '1') {
+    document.getElementById('appSidebar').classList.add('collapsed');
+    if (sidebarState === null) localStorage.setItem('dri_sidebar_collapsed', '1');
+  }
+});
 </script>
 
 </body>
