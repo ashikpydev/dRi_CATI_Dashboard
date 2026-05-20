@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>dRi · CATI Operations Center</title>
+<title>dRi · Phone Survey Tracker | Development Research Initiative</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -317,6 +317,20 @@ tr.interactive-table-row:hover{background-color:#F9FAFB;}
         </div>
       </div>
       
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
+        <div style="background:#F0FDF4; padding:16px; border-radius:var(--radius-lg); border:1px solid #BBF7D0;">
+            <h4 style="font-size:11px; font-weight:800; text-transform:uppercase; color:#166534; margin-bottom:10px;">Contact Information</h4>
+            <div style="display:flex; gap:16px; font-size:13px;">
+                <div><span style="color:#166534; font-weight:700;">Phone 1:</span> <span id="modalProfilePhn1" style="font-family:'JetBrains Mono', monospace;">—</span></div>
+                <div><span style="color:#166534; font-weight:700;">Phone 2:</span> <span id="modalProfilePhn2" style="font-family:'JetBrains Mono', monospace;">—</span></div>
+            </div>
+        </div>
+        <div style="background:#EFF6FF; padding:16px; border-radius:var(--radius-lg); border:1px solid #BFDBFE;">
+            <h4 style="font-size:11px; font-weight:800; text-transform:uppercase; color:#1E40AF; margin-bottom:10px;">Scheduled Interview Details</h4>
+            <div id="modalProfileSchedule" style="font-size:12.5px; color:#1E40AF;">—</div>
+        </div>
+      </div>
+      
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h4 style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">Historical Submission Trace Logs (Oldest to Newest)</h4>
         <div style="font-size:11.5px; font-weight:600; background:var(--bg-main); padding:6px 12px; border-radius:4px; font-family:'JetBrains Mono', monospace;" id="modalProfileTotalCounter">Total Database Hits Match: 0</div>
@@ -365,9 +379,15 @@ const INTEGRATED_COLUMN_HEADERS = {
   location: ['location', 'factory', 'district', 'upazila', 'village', 'group', 'pull_factory_name', 'area'],
   status: ['status', 'call_status', 'call_avail', 'tracking_status'],
   consent: ['consent', 'agreement', 'consented'],
-  reason: ['reject_reason', 'refusal_reason', 'reason', 'why_no', 'why_refused', 'no_consent_reason'],
+  reason: ['rsn_nt_consent', 'reject_reason', 'refusal_reason', 'reason', 'why_no', 'why_refused', 'no_consent_reason'],
   enumerator: ['enumerator', 'enum', 'enum_lab', 'enumerator name', 'enum_name'],
-  calls: ['total calls', 'total_calls', 'call_order', 'calls', 'pull_enum_call_order']
+  calls: ['total calls', 'total_calls', 'call_order', 'calls', 'pull_enum_call_order'],
+  resp_phn1: ['resp_phn1', 'phone1', 'phn1'],
+  resp_phn2: ['resp_phn2', 'phone2', 'phn2'],
+  day_to_call: ['day_to_call'],
+  time_to_call: ['time_to_call'],
+  phn_numbe_to_call: ['phn_numbe_to_call', 'number_to_call'],
+  call_avail: ['call_avail', 'availability_note']
 };
 
 let trackingProjectProfiles = [];
@@ -776,6 +796,14 @@ function processActiveDataStream() {
     const extractionReason = computedSchemaMap.reason !== -1 ? String(rowData[computedSchemaMap.reason]).trim() : '';
     const dialIndexOrder = computedSchemaMap.calls !== -1 ? String(rowData[computedSchemaMap.calls]).trim() : '1';
     const rowTimestamp = computedSchemaMap.timestamp !== -1 ? String(rowData[computedSchemaMap.timestamp]).trim() : String(idx);
+    
+    // New Fields
+    const respPhn1 = computedSchemaMap.resp_phn1 !== -1 ? String(rowData[computedSchemaMap.resp_phn1]).trim() : '—';
+    const respPhn2 = computedSchemaMap.resp_phn2 !== -1 ? String(rowData[computedSchemaMap.resp_phn2]).trim() : '—';
+    const dayToCall = computedSchemaMap.day_to_call !== -1 ? String(rowData[computedSchemaMap.day_to_call]).trim() : '—';
+    const timeToCall = computedSchemaMap.time_to_call !== -1 ? String(rowData[computedSchemaMap.time_to_call]).trim() : '—';
+    const phnNumbeToCall = computedSchemaMap.phn_numbe_to_call !== -1 ? String(rowData[computedSchemaMap.phn_numbe_to_call]).trim() : '—';
+    const callAvail = computedSchemaMap.call_avail !== -1 ? String(rowData[computedSchemaMap.call_avail]).trim() : '—';
 
     const cleanStatusLabel = convertValueCodeToReadableLabel(rawStatus, STATUS_VALUE_MAPPING);
     const cleanConsentLabel = convertValueCodeToReadableLabel(rawConsent, CONSENT_VALUE_MAPPING);
@@ -792,9 +820,16 @@ function processActiveDataStream() {
       status: cleanStatusLabel,
       consent: cleanConsentLabel,
       reason: extractionReason,
+      rawConsentVal: rawConsent,
       calls: dialIndexOrder,
       timestamp: rowTimestamp,
-      absoluteIndex: idx
+      absoluteIndex: idx,
+      resp_phn1: respPhn1,
+      resp_phn2: respPhn2,
+      day_to_call: dayToCall,
+      time_to_call: timeToCall,
+      phn_numbe_to_call: phnNumbeToCall,
+      call_avail: callAvail
     });
   }
   
@@ -922,9 +957,10 @@ function renderPrimaryGridUIBody() {
 
     const extractedDt = extractDateTimeFields(record.timestamp);
 
-    let reasonText = '—';
-    if (record.visualCategoryKey === 'danger' || String(record.consent).includes('0') || String(record.consent).toLowerCase().includes('refuse') || String(record.consent).toLowerCase().includes('no')) {
-       reasonText = record.reason && record.reason !== 'undefined' && record.reason !== '' ? escapeHtmlString(getLabel('reason', record.reason)) : 'Not Specified';
+    // FIX: Only show reason if consent == 0. If not, return empty string.
+    let reasonText = '';
+    if (String(record.rawConsentVal) === '0') {
+       reasonText = record.reason && record.reason !== 'undefined' && record.reason !== '' ? escapeHtmlString(getLabel('reason', record.reason)) : '';
     }
 
     rowElement.innerHTML = `
@@ -984,6 +1020,16 @@ function openRespondentDiagnosticHistoryLogModal(respondentId) {
   document.getElementById('modalProfileLocation').innerText = matchRecord.location || 'Not Specified';
   document.getElementById('modalProfileTotalCounter').innerText = `Total Forms Tracked: ${matchRecord.completeHistoryCallSequence.length}`;
   
+  // Set Contact Info
+  document.getElementById('modalProfilePhn1').innerText = matchRecord.resp_phn1 || '—';
+  document.getElementById('modalProfilePhn2').innerText = matchRecord.resp_phn2 || '—';
+  
+  // Set Schedule
+  const scheduleDisplay = (matchRecord.day_to_call !== '—' || matchRecord.time_to_call !== '—') 
+      ? `📅 <strong>${escapeHtmlString(matchRecord.day_to_call)}</strong> | ⏰ <strong>${escapeHtmlString(matchRecord.time_to_call)}</strong><br><span style="font-size:11px; color:#1E40AF;">Call To: ${escapeHtmlString(matchRecord.phn_numbe_to_call)} | Note: ${escapeHtmlString(matchRecord.call_avail)}</span>`
+      : 'No scheduling information available for this respondent.';
+  document.getElementById('modalProfileSchedule').innerHTML = scheduleDisplay;
+
   const timelineLogsContainer = document.getElementById('respondentHistoryLogsContainer');
   timelineLogsContainer.innerHTML = '';
   
@@ -1006,9 +1052,10 @@ function openRespondentDiagnosticHistoryLogModal(respondentId) {
 
     const extractedDt = extractDateTimeFields(historyItem.timestamp);
 
-    let reasonTxt = '—';
-    if (historyItem.status.toLowerCase().includes('wrong') || String(historyItem.consent).includes('0') || String(historyItem.consent).toLowerCase().includes('refuse') || String(historyItem.consent).toLowerCase().includes('no')) {
-       reasonTxt = historyItem.reason && historyItem.reason !== 'undefined' && historyItem.reason !== '' ? escapeHtmlString(getLabel('reason', historyItem.reason)) : 'Not Specified';
+    // FIX: Only show reason if consent == 0. If not, blank string.
+    let reasonTxt = '';
+    if (String(historyItem.rawConsentVal) === '0') {
+       reasonTxt = historyItem.reason && historyItem.reason !== 'undefined' && historyItem.reason !== '' ? escapeHtmlString(getLabel('reason', historyItem.reason)) : '';
     }
 
     historicalTr.innerHTML = `
