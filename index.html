@@ -335,9 +335,7 @@ table.suplog-grid tr:nth-child(even) td{background:rgba(192,24,35,.02);}
     <div class="sup-select-wrap">
       <span class="material-icons-round sup-icon">admin_panel_settings</span>
       <select id="uiSupervisorIdentity" onchange="handleSupervisorIdentityChange()">
-        <option value="SUP_01">Supervisor Alpha (PIN: 1234)</option>
-        <option value="SUP_02">Supervisor Beta (PIN: 5678)</option>
-        <option value="SUP_03">Supervisor Gamma (PIN: 9012)</option>
+        <option value="Zabir Hossain">Zabir Hossain (PIN: 45)</option>
       </select>
     </div>
   </div>
@@ -405,10 +403,10 @@ table.suplog-grid tr:nth-child(even) td{background:rgba(192,24,35,.02);}
         <div class="kpi-value blue" id="kpiRecoveryRate">0%</div>
       </div>
       <div class="kpi-item" style="flex:1.4;">
-        <div class="kpi-label" id="kpiSupLabel">Supervisor Unlocks</div>
+        <div class="kpi-label" id="kpiSupLabel">Supervisor Attempted</div>
         <div style="display:flex;gap:24px;align-items:baseline;margin-top:2px;">
-          <div><div class="kpi-label" style="margin:0;">Unlocked</div><div class="kpi-value" id="kpiUnlocked" style="font-size:20px;">0</div></div>
-          <div><div class="kpi-label" style="margin:0;">Converted</div><div class="kpi-value green" id="kpiConverted" style="font-size:20px;">0</div></div>
+          <div><div class="kpi-label" style="margin:0;">Attempted</div><div class="kpi-value amber" id="kpiUnlocked" style="font-size:20px;">0</div></div>
+          <div><div class="kpi-label" style="margin:0;">Success</div><div class="kpi-value green" id="kpiConverted" style="font-size:20px;">0</div></div>
           <div><div class="kpi-label" style="margin:0;">Success Rate</div><div class="kpi-value blue" id="kpiSupRate" style="font-size:20px;">0%</div></div>
         </div>
       </div>
@@ -431,7 +429,7 @@ table.suplog-grid tr:nth-child(even) td{background:rgba(192,24,35,.02);}
         </div>
         <!-- Funnel -->
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons-round">filter_alt</span> Refusal Recovery Funnel</div>
+          <div class="chart-card-title"><span class="material-icons-round">filter_alt</span> Refusal Recovery by Supervisor</div>
           <div class="funnel-wrap" id="funnelWrap" style="height:160px;justify-content:center;display:flex;flex-direction:column;gap:10px;"></div>
         </div>
       </div>
@@ -1140,8 +1138,9 @@ function renderOverviewCharts() {
   if (chartDonut) chartDonut.destroy();
   chartDonut = new Chart(donutCtx,{
     type:'doughnut',
-    data:{labels:['Consented','Refused','Pending'],datasets:[{data:[consented,refused,pending],backgroundColor:['#137333','#C5221F','#B45309'],borderWidth:0,hoverOffset:4}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{font:{family:'Barlow',size:11},padding:8,usePointStyle:true}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${total?Math.round(ctx.parsed/total*100):0}%)`}}}}
+    data:{labels:['Consented','Refused','Pending'],datasets:[{data:[consented,refused,pending],backgroundColor:['#137333','#C5221F','#FCD34D'],borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{font:{family:'Barlow',size:11},padding:8,usePointStyle:true}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${total?Math.round(ctx.parsed/total*100):0}%)`}}}},
+    plugins:[{id:'donutLabels',afterDatasetsDraw(chart){const {ctx,data,chartArea}=chart;data.datasets[0].data.forEach((val,i)=>{if(!val)return;const meta=chart.getDatasetMeta(0);const arc=meta.data[i];const angle=(arc.startAngle+arc.endAngle)/2;const r=(arc.innerRadius+arc.outerRadius)/2;const x=chartArea.left+chartArea.width/2+Math.cos(angle)*r;const y=chartArea.top+chartArea.height/2+Math.sin(angle)*r;ctx.save();ctx.fillStyle='#fff';ctx.font='bold 13px Barlow';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(val,x,y);ctx.restore();});}}]
   });
 
   // Activity Line
@@ -1163,7 +1162,7 @@ function renderOverviewCharts() {
 
   // Funnel
   const fw=document.getElementById('funnelWrap');
-  const fdata=[{label:'Total Refusals',val:globalRefusals,color:'#C5221F'},{label:'Supervisor Unlocked',val:unlocked,color:'#B45309'},{label:'Recovered Success',val:converted,color:'#137333'}];
+  const fdata=[{label:'Total Refusals',val:globalRefusals,color:'#C5221F'},{label:'Supervisor Attempted',val:unlocked,color:'#FCD34D'},{label:'Recovered Success',val:converted,color:'#137333'}];
   const maxVal=Math.max(globalRefusals,1);
   fw.innerHTML=fdata.map(f=>`
     <div class="funnel-row">
